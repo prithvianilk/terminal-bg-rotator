@@ -131,6 +131,8 @@ def load_images(album_url: str, refresh: bool = False) -> list[dict]:
     if refresh or not MANIFEST_FILE.exists():
         return sync_manifest(album_url)
     manifest = read_json(MANIFEST_FILE, {})
+    if manifest.get("album_url", "").rstrip("/") != album_url.rstrip("/"):
+        return sync_manifest(album_url)
     images = manifest.get("images")
     if not isinstance(images, list) or not images:
         return sync_manifest(album_url)
@@ -378,7 +380,16 @@ def load_state() -> dict:
 
 def choose_image(images: list[dict], randomize: bool) -> tuple[int, dict]:
     state = load_state()
-    previous = int(state.get("index", -1))
+    previous_id = state.get("image_id")
+    previous = next(
+        (index for index, image in enumerate(images) if image.get("id") == previous_id),
+        -1,
+    )
+    if previous == -1:
+        try:
+            previous = int(state.get("index", -1))
+        except (TypeError, ValueError):
+            previous = -1
     if randomize and len(images) > 1:
         index = random.randrange(len(images))
         if index == previous:
