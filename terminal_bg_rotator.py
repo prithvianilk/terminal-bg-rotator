@@ -266,7 +266,11 @@ def app_is_running(process_name: str) -> bool:
     processes = subprocess.run(
         ["ps", "-axo", "command="], capture_output=True, text=True
     ).stdout.splitlines()
-    return any(Path(command.strip().split(" ", 1)[0]).name == process_name for command in processes)
+    expected_name = process_name.casefold()
+    return any(
+        Path(command.strip().split(" ", 1)[0]).name.casefold() == expected_name
+        for command in processes
+    )
 
 
 def applescript_quote(value: str) -> str:
