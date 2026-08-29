@@ -219,10 +219,10 @@ def ghostty_config_path() -> Path:
     return next((path for path in candidates if path.exists()), candidates[0])
 
 
-def update_ghostty(opacity: str) -> None:
+def update_ghostty(opacity: str, image_path: Path = ACTIVE_IMAGE) -> None:
     config = ghostty_config_path()
     existing = config.read_text(encoding="utf-8") if config.exists() else ""
-    escaped_image = str(ACTIVE_IMAGE).replace("\\", "\\\\").replace('"', '\\"')
+    escaped_image = str(image_path).replace("\\", "\\\\").replace('"', '\\"')
     block = (
         "# terminal-bg-rotator:start\n"
         f'background-image = "{escaped_image}"\n'
@@ -236,9 +236,8 @@ def update_ghostty(opacity: str) -> None:
         r"^# terminal-bg-rotator:start\n.*?^# terminal-bg-rotator:end\n?",
         re.MULTILINE | re.DOTALL,
     )
-    updated = pattern.sub(block, existing)
-    if updated == existing:
-        updated = existing.rstrip() + ("\n\n" if existing.strip() else "") + block
+    unmanaged = pattern.sub("", existing).rstrip()
+    updated = unmanaged + ("\n\n" if unmanaged else "") + block
     atomic_write(config, updated)
     print(f"Ghostty config updated: {config}")
 
@@ -396,7 +395,7 @@ def rotate(images: list[dict], target: str, randomize: bool, opacity: str) -> No
     make_active(cached_image)
 
     if target in ("ghostty", "both", "all"):
-        update_ghostty(opacity)
+        update_ghostty(opacity, cached_image)
     if target in ("terminal", "both", "all"):
         terminal_note()
     if target in ("iterm2", "all"):
