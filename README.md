@@ -6,9 +6,6 @@ Currently, this supports One Piece full-color spread images.
 
 ![iTerm2 with a subtle rotating background](assets/iterm2-demo.png)
 
-The screenshot shows the intended result: the image remains visible while the
-terminal text stays readable.
-
 ## Setup
 
 ```sh
